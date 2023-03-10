@@ -11,7 +11,9 @@
     "test": "jest"
   },
   "dependencies": {
+    "events": "^3.3.0",
     "jsmodbus": "^4.0.6",
+    "net": "^1.0.2",
     "react": "18.2.0",
     "react-native": "0.71.4"
   },

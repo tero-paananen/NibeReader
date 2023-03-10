@@ -1,5 +1,5 @@
-const modbus = require('jsmodbus');
-const net = require('net');
+import modbus from 'jsmodbus';
+import net from 'net';
 
 export type NibeData = {tempOutside: string};
 type NibeError = {error?: string; message?: string};

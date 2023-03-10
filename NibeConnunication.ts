@@ -1,12 +1,12 @@
 const modbus = require('jsmodbus');
 const net = require('net');
 
-type NibeData = {tempOutside: string};
+export type NibeData = {tempOutside: string};
 type NibeError = {error?: string; message?: string};
 
 export const readData = async (
   host: string,
-  port: string = '502'
+  port: string
 ): Promise<NibeData> => {
   return new Promise((resolve, reject) => {
     const socket = new net.Socket();

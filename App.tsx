@@ -1,5 +1,13 @@
 import React, {useState} from 'react';
-import {Alert, Button, ScrollView, TextInput, View, Text} from 'react-native';
+import {
+  Alert,
+  Button,
+  ScrollView,
+  TextInput,
+  View,
+  Text,
+  StyleSheet,
+} from 'react-native';
 import {NibeData, readData} from './NibeConnunication';
 
 const App = () => {
@@ -8,10 +16,10 @@ const App = () => {
   const [data, setData] = useState<NibeData[]>([]);
 
   return (
-    <View style={{flex: 1, backgroundColor: 'black', margin: 20}}>
-      <View style={{flexDirection: 'row'}}>
+    <View style={{flex: 1, backgroundColor: 'black', padding: 20}}>
+      <View style={{flexDirection: 'row', marginTop: 100}}>
         <TextInput
-          style={{width: 120, color: 'white'}}
+          style={[styles.input, {minWidth: 200}]}
           placeholder={'address'}
           placeholderTextColor={'white'}
           value={host}
@@ -20,7 +28,7 @@ const App = () => {
           }}
         />
         <TextInput
-          style={{width: 60, color: 'white'}}
+          style={styles.input}
           placeholder={'port'}
           placeholderTextColor={'white'}
           value={port}
@@ -28,29 +36,23 @@ const App = () => {
             setPort(value);
           }}
         />
+        <Button
+          title="Connect"
+          onPress={async () => {
+            try {
+              const d = await readData(host, port);
+              setData(prev => {
+                return [d, ...prev];
+              });
+            } catch (error: any) {
+              Alert.alert('Nibe', error.message);
+            }
+          }}
+        />
       </View>
-      <Button
-        color={'white'}
-        title="Connect"
-        onPress={async () => {
-          try {
-            const d = await readData(host, port);
-            setData(prev => {
-              return [d, ...prev];
-            });
-          } catch (error: any) {
-            Alert.alert('Nibe', error.message);
-          }
-        }}
-      />
       <ScrollView
-        style={{flex: 1, backgroundColor: 'black'}}
-        contentContainerStyle={{
-          padding: 20,
-          borderColor: 'white',
-          borderRadius: 2,
-          borderWidth: 1,
-        }}>
+        style={styles.list}
+        contentContainerStyle={styles.listContent}>
         {data.map((d, i) => {
           return (
             <Text style={{color: 'white'}} key={i}>
@@ -62,5 +64,29 @@ const App = () => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  input: {
+    color: 'white',
+    borderColor: 'white',
+    borderWidth: 1,
+    borderRadius: 2,
+    marginHorizontal: 10,
+    padding: 10,
+  },
+  list: {
+    flex: 1,
+    backgroundColor: 'black',
+    marginTop: 20,
+  },
+  listContent: {
+    padding: 10,
+    margin: 10,
+    borderColor: 'white',
+    borderRadius: 2,
+    borderWidth: 1,
+    minHeight: 200,
+  },
+});
 
 export default App;

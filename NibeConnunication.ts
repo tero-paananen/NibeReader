@@ -23,7 +23,6 @@ export const readData = async (
     };
 
     const client = new modbus.client.TCP(socket);
-    socket.connect(option);
 
     socket.on('connect', async () => {
       try {
@@ -54,6 +53,8 @@ export const readData = async (
     socket.on('close', () => {
       console.log('Socket closed');
     });
+
+    socket.connect(option);
   });
 };
 

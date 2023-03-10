@@ -6,7 +6,7 @@ type NibeError = {error?: string; message?: string};
 
 export const readData = async (
   host: string,
-  port: string
+  port: string = '502'
 ): Promise<NibeData> => {
   return new Promise((resolve, reject) => {
     const socket = new net.Socket();

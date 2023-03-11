@@ -40,10 +40,11 @@ const App = () => {
           title="Connect"
           onPress={async () => {
             try {
+              /*
               const d = await readData(host, port);
               setData(prev => {
                 return [d, ...prev];
-              });
+              });*/
             } catch (error: any) {
               Alert.alert('Nibe', error.message);
             }

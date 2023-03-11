@@ -1,13 +1,23 @@
-import modbus from 'jsmodbus';
-import net from 'net';
+//import modbus from 'jsmodbus';
+//import net from 'net';
 
 export type NibeData = {tempOutside: string};
-type NibeError = {error?: string; message?: string};
+type NibeError = {error?: string};
 
-export const readData = async (
+export const authorize = async (): Promise<string> => {
+  throw Error('Not implemented');
+};
+
+export const readMyUplinkData = async (): Promise<any> => {
+  throw Error('Not implemented');
+};
+
+export const readModBusData = async (
   host: string,
   port: string
 ): Promise<NibeData> => {
+  throw Error('Not supported. Supported in Node.js only.');
+  /*
   return new Promise((resolve, reject) => {
     const socket = new net.Socket();
 
@@ -45,9 +55,9 @@ export const readData = async (
     });
 
     socket.on('error', (e: NibeError) => {
-      console.log('Socket closed', getError(e));
+      console.log('Socket closed', e.error);
       socket.end();
-      reject(getError(e));
+      reject( e.error);
     });
 
     socket.on('close', () => {
@@ -55,9 +65,5 @@ export const readData = async (
     });
 
     socket.connect(option);
-  });
-};
-
-const getError = (e: NibeError) => {
-  return e.error || e.message || 'Unknown error';
+  });*/
 };

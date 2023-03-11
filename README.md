@@ -1,17 +1,22 @@
 # NibeReader
 
-### API
 
-https://api.nibeuplink.com
 
-https://github.com/elupus/hass_nibe
+### My Uplink API
+
+https://dev.myuplink.com/
+
+https://auth0.com/docs/get-started/authentication-and-authorization-flow/client-credentials-flow
+
+
+
+
+
+### Mobus
 
 https://github.com/x-erik/eu.nibe-modbus
 
 https://www.npmjs.com/package/jsmodbus
-
-
-### Mobus
 
 Reading values via mobus https://www.npmjs.com/package/jsmodbus
 

@@ -5,43 +5,9 @@ import base64 from 'base-64';
 
 export type NibeData = {tempOutside: string};
 
-const REDIRECT_URL = 'nibereader://authorized';
-
-let deviceId = null;
-let accessToken = null;
-
-export const authorize = async (clientId: string): Promise<boolean> => {
-  // Client Identifier and Client Secred from https://dev.myuplink.com/apps
-  // https://auth0.com/docs/get-started/authentication-and-authorization-flow/client-credentials-flow
-  // https://dev.myuplink.com/auth
-
-  throw Error('Not implemented');
-
-  /*
-  try {
-    const headers = new Headers();
-    const url =
-      'https://api.myuplink.com/oauth/authorize?response_type=code&client_id=' +
-      encodeURIComponent(clientId) +
-      '&scope=READSYSTEM WRITESYSTEM offline_access&redirect_uri=' +
-      encodeURIComponent(REDIRECT_URL) +
-      '&state=x';
-    const response = await fetch(url, {
-      headers,
-      method: 'GET',
-    });
-    if (response.ok) {
-      //const data = await response.json();
-      //console.log('> data', data);
-      return true;
-    } else {
-      throw Error('Failed to get token:' + response.statusText);
-    }
-  } catch (error: any) {
-    console.log('authorize error', error.message);
-    throw error;
-  }*/
-};
+let _deviceId = null;
+let _systemId = null;
+let _accessToken = null;
 
 export const getToken = async (
   clientId: string,
@@ -51,7 +17,6 @@ export const getToken = async (
 
   const headers = new Headers();
   headers.append('Content-Type', 'application/x-www-form-urlencoded');
-  headers.append('Accept', 'application/json, text/plain, */*');
 
   headers.append(
     'Authorization',
@@ -67,7 +32,7 @@ export const getToken = async (
   if (response.ok) {
     const data = await response.json();
     if (data.access_token) {
-      accessToken = data.access_token;
+      _accessToken = data.access_token;
       return data.access_token;
     } else {
       throw Error('Failed to get token: Access token missing');
@@ -80,7 +45,6 @@ export const getToken = async (
 export const getSystemInfo = async (token: string): Promise<string> => {
   const headers = new Headers();
   headers.append('Authorization', 'Bearer ' + token);
-  headers.append('Accept', 'text/plain');
 
   const response = await fetch(
     'https://api.myuplink.com/v2/systems/me?page=1&itemsPerPage=10',
@@ -95,19 +59,79 @@ export const getSystemInfo = async (token: string): Promise<string> => {
 
     if (data) {
       if (data.systems && data.systems.length) {
-        console.log('> system', data.systems[0]);
         const system = data.systems[0];
         //const name = system.name;
+        _systemId = system.systemId;
         if (system.devices && system.devices.length) {
           const device = system.devices[0];
-          deviceId = device.id;
-          return deviceId;
+          _deviceId = device.id;
+          return device.id;
         }
       }
     }
     throw Error('Failed to get system info: Data missing');
   } else {
     throw Error('Failed to get system info:' + response.statusText);
+  }
+};
+
+export const getDeviceInfo = async (
+  token: string,
+  deviceId: string
+): Promise<string> => {
+  const headers = new Headers();
+  headers.append('Authorization', 'Bearer ' + token);
+
+  const response = await fetch(
+    'https://api.myuplink.com/v2/devices/' + deviceId,
+    {
+      method: 'GET',
+      headers,
+    }
+  );
+
+  if (response.ok) {
+    const data = await response.json();
+    if (data) {
+      if (data.connectionState) {
+        return data.connectionState;
+      }
+    }
+    throw Error('Failed to get device info: Data missing');
+  } else {
+    throw Error('Failed to get device info:' + response.statusText);
+  }
+};
+
+export const getDevicePoints = async (
+  token: string,
+  deviceId: string
+): Promise<string> => {
+  const headers = new Headers();
+  headers.append('Authorization', 'Bearer ' + token);
+  headers.append('Accept-Language', 'en-US');
+
+  const response = await fetch(
+    'https://api.myuplink.com/v2/devices/' + deviceId + '/points',
+    {
+      method: 'GET',
+      headers,
+    }
+  );
+
+  if (response.ok) {
+    const points = await response.json();
+    if (points && points.length) {
+      const data = points.map(
+        (category: {parameterName: string; strVal: string}) => {
+          return category.parameterName + ' = ' + category.strVal;
+        }
+      );
+      return data.join('\n');
+    }
+    throw Error('Failed to get device points: Data missing');
+  } else {
+    throw Error('Failed to get device points:' + response.statusText);
   }
 };
 

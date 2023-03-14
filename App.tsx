@@ -8,7 +8,12 @@ import {
   Text,
   StyleSheet,
 } from 'react-native';
-import {getSystemInfo, getToken} from './NibeConnunication';
+import {
+  getDeviceInfo,
+  getDevicePoints,
+  getSystemInfo,
+  getToken,
+} from './NibeConnunication';
 
 const App = () => {
   const [clientId, setClientId] = useState('');
@@ -41,13 +46,21 @@ const App = () => {
           onPress={async () => {
             try {
               setData(['']);
-              const ret = await getToken(clientId, clientSecret);
+              const token = await getToken(clientId, clientSecret);
               setData(prev => {
-                return ['\nAccess token:', ret, ...prev];
+                return ['\nAccess token:', token, ...prev];
               });
-              const info = await getSystemInfo(ret);
+              const deviceId = await getSystemInfo(token);
               setData(prev => {
-                return ['\nDeviceId:', info, ...prev];
+                return ['\nDeviceId:', deviceId, ...prev];
+              });
+              const deviceInfo = await getDeviceInfo(token, deviceId);
+              setData(prev => {
+                return ['Connection:', deviceInfo, ...prev];
+              });
+              const points = await getDevicePoints(token, deviceId);
+              setData(prev => {
+                return ['Points:', points, ...prev];
               });
             } catch (error: any) {
               Alert.alert('Nibe', error.message);

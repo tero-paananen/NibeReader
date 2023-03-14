@@ -26,5 +26,4 @@ https://github.com/x-erik/eu.nibe-modbus/blob/821c02a9e919ba7dc21bb324fb52e183e4
 
 
 
-<img src="https://user-images.githubusercontent.com/54746036/224988637-5e77adee-31db-49b3-8116-a5bc911117f1.png" width=40% height=40%>
-
+<img src="https://user-images.githubusercontent.com/54746036/225016084-53760f5c-ff37-4a55-a0e5-19aab7e2fddb.png" width=40% height=40%>

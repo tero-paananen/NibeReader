@@ -29,6 +29,7 @@ const App = () => {
           placeholder={'Client Identifier'}
           placeholderTextColor={'#16ff16'}
           value={clientId}
+          autoCapitalize={'none'}
           onChangeText={value => {
             setClientId(value);
           }}
@@ -38,6 +39,7 @@ const App = () => {
           placeholder={'Client Secret'}
           placeholderTextColor={'#16ff16'}
           value={clientSecret}
+          autoCapitalize={'none'}
           onChangeText={value => {
             setClientSecret(value);
           }}
@@ -103,7 +105,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    flex: 1,
     padding: 10,
     borderColor: '#16ff16',
     borderRadius: 2,

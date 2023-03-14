@@ -8,43 +8,42 @@ import {
   Text,
   StyleSheet,
 } from 'react-native';
-import {NibeData, readData} from './NibeConnunication';
+import {getToken} from './NibeConnunication';
 
 const App = () => {
-  const [host, setHost] = useState('');
-  const [port, setPort] = useState('502');
-  const [data, setData] = useState<NibeData[]>([]);
+  const [clientId, setClientId] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
+  const [data, setData] = useState<string[]>([]);
 
   return (
-    <View style={{flex: 1, backgroundColor: 'black', padding: 20}}>
-      <View style={{flexDirection: 'row', marginTop: 100}}>
+    <View style={{flex: 1, backgroundColor: 'black', padding: 10}}>
+      <View style={{marginTop: 50}}>
         <TextInput
-          style={[styles.input, {minWidth: 200}]}
-          placeholder={'address'}
+          style={styles.input}
+          placeholder={'Client Identifier'}
           placeholderTextColor={'white'}
-          value={host}
+          value={clientId}
           onChangeText={value => {
-            setHost(value);
+            setClientId(value);
           }}
         />
         <TextInput
           style={styles.input}
-          placeholder={'port'}
+          placeholder={'Client Secret'}
           placeholderTextColor={'white'}
-          value={port}
+          value={clientSecret}
           onChangeText={value => {
-            setPort(value);
+            setClientSecret(value);
           }}
         />
         <Button
           title="Connect"
           onPress={async () => {
             try {
-              /*
-              const d = await readData(host, port);
+              const ret = await getToken(clientId, clientSecret);
               setData(prev => {
-                return [d, ...prev];
-              });*/
+                return [ret, ...prev];
+              });
             } catch (error: any) {
               Alert.alert('Nibe', error.message);
             }
@@ -57,7 +56,7 @@ const App = () => {
         {data.map((d, i) => {
           return (
             <Text style={{color: 'white'}} key={i}>
-              {'Temp outside ' + d.tempOutside}
+              {d}
             </Text>
           );
         })}
@@ -72,17 +71,17 @@ const styles = StyleSheet.create({
     borderColor: 'white',
     borderWidth: 1,
     borderRadius: 2,
-    marginHorizontal: 10,
+    marginVertical: 10,
     padding: 10,
+    minWidth: 200,
   },
   list: {
     flex: 1,
     backgroundColor: 'black',
-    marginTop: 20,
+    marginTop: 40,
   },
   listContent: {
     padding: 10,
-    margin: 10,
     borderColor: 'white',
     borderRadius: 2,
     borderWidth: 1,

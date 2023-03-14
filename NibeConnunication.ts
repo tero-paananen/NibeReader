@@ -1,11 +1,81 @@
 //import modbus from 'jsmodbus';
 //import net from 'net';
 
-export type NibeData = {tempOutside: string};
-type NibeError = {error?: string};
+import base64 from 'base-64';
 
-export const authorize = async (): Promise<string> => {
+export type NibeData = {tempOutside: string};
+//type NibeError = {error?: string};
+
+const REDIRECT_URL = 'nibereader://authorized';
+
+export const authorize = async (clientId: string): Promise<boolean> => {
+  // Client Identifier and Client Secred from https://dev.myuplink.com/apps
+  // https://auth0.com/docs/get-started/authentication-and-authorization-flow/client-credentials-flow
+  // https://dev.myuplink.com/auth
+
   throw Error('Not implemented');
+
+  /*
+  try {
+    const headers = new Headers();
+    const url =
+      'https://api.myuplink.com/oauth/authorize?response_type=code&client_id=' +
+      encodeURIComponent(clientId) +
+      '&scope=READSYSTEM WRITESYSTEM offline_access&redirect_uri=' +
+      encodeURIComponent(REDIRECT_URL) +
+      '&state=x';
+    const response = await fetch(url, {
+      headers,
+      method: 'GET',
+    });
+    if (response.ok) {
+      //const data = await response.json();
+      //console.log('> data', data);
+      return true;
+    } else {
+      throw Error('Failed to get token:' + response.statusText);
+    }
+  } catch (error: any) {
+    console.log('authorize error', error.message);
+    throw error;
+  }*/
+};
+
+export const getToken = async (
+  clientId: string,
+  clientSecred: string
+): Promise<string> => {
+  // https://auth0.com/docs/api/authentication?javascript#get-token
+
+  try {
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/x-www-form-urlencoded');
+    headers.append('Accept', 'application/json, text/plain, */*');
+
+    headers.append(
+      'Authorization',
+      'Basic ' + base64.encode(clientId + ':' + clientSecred)
+    );
+
+    const response = await fetch('https://api.myuplink.com/oauth/token', {
+      headers,
+      body: 'grant_type=client_credentials&scope=READSYSTEM',
+      method: 'POST',
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.access_token) {
+        return data.access_token;
+      } else {
+        throw Error('Failed to get token: Access token missing');
+      }
+    } else {
+      throw Error('Failed to get token:' + response.statusText);
+    }
+  } catch (error: any) {
+    throw error;
+  }
 };
 
 export const readMyUplinkData = async (): Promise<any> => {

@@ -4,6 +4,8 @@
 
 ### My Uplink API
 
+Register app in https://dev.myuplink.com/apps to get needed Client Identifier and Client Secret
+
 https://dev.myuplink.com/
 
 https://auth0.com/docs/get-started/authentication-and-authorization-flow/client-credentials-flow

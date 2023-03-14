@@ -18,7 +18,7 @@ import {
 const App = () => {
   const [clientId, setClientId] = useState('');
   const [clientSecret, setClientSecret] = useState('');
-  const [data, setData] = useState<string[]>([]);
+  const [data, setData] = useState<string[]>(['No data']);
 
   return (
     <View style={{flex: 1, backgroundColor: 'black', padding: 10}}>
@@ -69,18 +69,20 @@ const App = () => {
           <Text style={styles.btn}>{'Connect'}</Text>
         </TouchableHighlight>
       </View>
-      <ScrollView
-        style={styles.list}
-        showsVerticalScrollIndicator={true}
-        contentContainerStyle={styles.listContent}>
-        {data.map((d, i) => {
-          return (
-            <Text style={styles.listText} key={i}>
-              {d}
-            </Text>
-          );
-        })}
-      </ScrollView>
+      <View style={styles.listParent}>
+        <ScrollView
+          showsVerticalScrollIndicator={true}
+          contentContainerStyle={styles.listContent}>
+          {data.map((d, i) => {
+            return (
+              <Text style={styles.listText} key={i}>
+                {d}
+              </Text>
+            );
+          })}
+        </ScrollView>
+      </View>
+      <Text style={[styles.label, {padding: 20}]}>{'Tero Paananen 2023'}</Text>
     </View>
   );
 };
@@ -89,26 +91,27 @@ const styles = StyleSheet.create({
   input: {
     color: '#16ff16',
     borderColor: '#16ff16',
-    borderWidth: 0.4,
+    borderBottomWidth: 0.4,
     borderRadius: 2,
     marginVertical: 10,
-    padding: 10,
+    padding: 8,
+    marginHorizontal: 20,
+    fontFamily: 'Courier New',
     minWidth: 200,
   },
-  list: {
+  listParent: {
     flex: 1,
-    backgroundColor: 'black',
-    marginTop: 40,
   },
   listContent: {
+    flex: 1,
     padding: 10,
     borderColor: '#16ff16',
     borderRadius: 2,
     borderWidth: 0.4,
-    minHeight: 200,
   },
   listText: {
     color: '#16ff16',
+    fontFamily: 'Courier New',
     fontSize: 12,
   },
   title: {
@@ -117,14 +120,23 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     textAlign: 'center',
     color: '#16ff16',
+    fontFamily: 'Courier New',
   },
   btn: {
     padding: 10,
     minWidth: 100,
     fontSize: 16,
+    fontFamily: 'Courier New',
     alignSelf: 'center',
     textAlign: 'center',
     color: '#16ff16',
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 10,
+    textAlign: 'center',
+    color: '#16ff16',
+    fontFamily: 'Courier New',
   },
 });
 

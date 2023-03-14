@@ -1,12 +1,12 @@
 import React, {useState} from 'react';
 import {
   Alert,
-  Button,
   ScrollView,
   TextInput,
   View,
   Text,
   StyleSheet,
+  TouchableHighlight,
 } from 'react-native';
 import {
   getDeviceInfo,
@@ -23,10 +23,11 @@ const App = () => {
   return (
     <View style={{flex: 1, backgroundColor: 'black', padding: 10}}>
       <View style={{marginTop: 50}}>
+        <Text style={styles.title}>{'Nibe Reader'}</Text>
         <TextInput
           style={styles.input}
           placeholder={'Client Identifier'}
-          placeholderTextColor={'white'}
+          placeholderTextColor={'#16ff16'}
           value={clientId}
           onChangeText={value => {
             setClientId(value);
@@ -35,14 +36,13 @@ const App = () => {
         <TextInput
           style={styles.input}
           placeholder={'Client Secret'}
-          placeholderTextColor={'white'}
+          placeholderTextColor={'#16ff16'}
           value={clientSecret}
           onChangeText={value => {
             setClientSecret(value);
           }}
         />
-        <Button
-          title="Connect"
+        <TouchableHighlight
           onPress={async () => {
             try {
               setData(['']);
@@ -65,15 +65,17 @@ const App = () => {
             } catch (error: any) {
               Alert.alert('Nibe', error.message);
             }
-          }}
-        />
+          }}>
+          <Text style={styles.btn}>{'Connect'}</Text>
+        </TouchableHighlight>
       </View>
       <ScrollView
         style={styles.list}
+        showsVerticalScrollIndicator={true}
         contentContainerStyle={styles.listContent}>
         {data.map((d, i) => {
           return (
-            <Text style={{color: 'white'}} key={i}>
+            <Text style={styles.listText} key={i}>
               {d}
             </Text>
           );
@@ -85,9 +87,9 @@ const App = () => {
 
 const styles = StyleSheet.create({
   input: {
-    color: 'white',
-    borderColor: 'white',
-    borderWidth: 1,
+    color: '#16ff16',
+    borderColor: '#16ff16',
+    borderWidth: 0.4,
     borderRadius: 2,
     marginVertical: 10,
     padding: 10,
@@ -100,10 +102,29 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 10,
-    borderColor: 'white',
+    borderColor: '#16ff16',
     borderRadius: 2,
-    borderWidth: 1,
+    borderWidth: 0.4,
     minHeight: 200,
+  },
+  listText: {
+    color: '#16ff16',
+    fontSize: 12,
+  },
+  title: {
+    padding: 10,
+    fontSize: 18,
+    alignSelf: 'center',
+    textAlign: 'center',
+    color: '#16ff16',
+  },
+  btn: {
+    padding: 10,
+    minWidth: 100,
+    fontSize: 16,
+    alignSelf: 'center',
+    textAlign: 'center',
+    color: '#16ff16',
   },
 });
 

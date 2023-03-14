@@ -8,6 +8,9 @@ import {
   StyleSheet,
   TouchableHighlight,
 } from 'react-native';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import {
   getDeviceInfo,
   getDevicePoints,

@@ -1,20 +1,16 @@
 # NibeReader
 
+This React Native application communicates and read values from Nibe ground source heatin pump using My Uplink API https://dev.myuplink.com/
 
 
 ### My Uplink API
 
 Register app in https://dev.myuplink.com/apps to get needed Client Identifier and Client Secret
 
-https://dev.myuplink.com/
-
-https://auth0.com/docs/get-started/authentication-and-authorization-flow/client-credentials-flow
-
-
-
-
 
 ### Mobus
+
+Modbus seems to work only on Node.js.
 
 https://github.com/x-erik/eu.nibe-modbus
 

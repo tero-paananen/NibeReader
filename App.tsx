@@ -8,7 +8,7 @@ import {
   Text,
   StyleSheet,
 } from 'react-native';
-import {getToken} from './NibeConnunication';
+import {getSystemInfo, getToken} from './NibeConnunication';
 
 const App = () => {
   const [clientId, setClientId] = useState('');
@@ -40,9 +40,14 @@ const App = () => {
           title="Connect"
           onPress={async () => {
             try {
+              setData(['']);
               const ret = await getToken(clientId, clientSecret);
               setData(prev => {
-                return [ret, ...prev];
+                return ['\nAccess token:', ret, ...prev];
+              });
+              const info = await getSystemInfo(ret);
+              setData(prev => {
+                return ['\nSystemId:', info, ...prev];
               });
             } catch (error: any) {
               Alert.alert('Nibe', error.message);

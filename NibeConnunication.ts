@@ -4,9 +4,11 @@
 import base64 from 'base-64';
 
 export type NibeData = {tempOutside: string};
-//type NibeError = {error?: string};
 
 const REDIRECT_URL = 'nibereader://authorized';
+
+let systemId = null;
+let accessToken = null;
 
 export const authorize = async (clientId: string): Promise<boolean> => {
   // Client Identifier and Client Secred from https://dev.myuplink.com/apps
@@ -47,34 +49,61 @@ export const getToken = async (
 ): Promise<string> => {
   // https://auth0.com/docs/api/authentication?javascript#get-token
 
-  try {
-    const headers = new Headers();
-    headers.append('Content-Type', 'application/x-www-form-urlencoded');
-    headers.append('Accept', 'application/json, text/plain, */*');
+  const headers = new Headers();
+  headers.append('Content-Type', 'application/x-www-form-urlencoded');
+  headers.append('Accept', 'application/json, text/plain, */*');
 
-    headers.append(
-      'Authorization',
-      'Basic ' + base64.encode(clientId + ':' + clientSecred)
-    );
+  headers.append(
+    'Authorization',
+    'Basic ' + base64.encode(clientId + ':' + clientSecred)
+  );
 
-    const response = await fetch('https://api.myuplink.com/oauth/token', {
-      headers,
-      body: 'grant_type=client_credentials&scope=READSYSTEM',
-      method: 'POST',
-    });
+  const response = await fetch('https://api.myuplink.com/oauth/token', {
+    headers,
+    body: 'grant_type=client_credentials&scope=READSYSTEM',
+    method: 'POST',
+  });
 
-    if (response.ok) {
-      const data = await response.json();
-      if (data.access_token) {
-        return data.access_token;
-      } else {
-        throw Error('Failed to get token: Access token missing');
-      }
+  if (response.ok) {
+    const data = await response.json();
+    if (data.access_token) {
+      accessToken = data.access_token;
+      return data.access_token;
     } else {
-      throw Error('Failed to get token:' + response.statusText);
+      throw Error('Failed to get token: Access token missing');
     }
-  } catch (error: any) {
-    throw error;
+  } else {
+    throw Error('Failed to get token:' + response.statusText);
+  }
+};
+
+export const getSystemInfo = async (token: string): Promise<string> => {
+  const headers = new Headers();
+  headers.append('Authorization', 'Bearer ' + token);
+  headers.append('Accept', 'text/plain');
+
+  const response = await fetch(
+    'https://api.myuplink.com/v2/systems/me?page=1&itemsPerPage=10',
+    {
+      method: 'GET',
+      headers,
+    }
+  );
+
+  if (response.ok) {
+    const data = await response.json();
+
+    if (data) {
+      if (data.systems && data.systems.length) {
+        const system = data.systems[0];
+        //const name = system.name;
+        systemId = system.systemId;
+        return system.systemId;
+      }
+    }
+    throw Error('Failed to get system info: Data missing');
+  } else {
+    throw Error('Failed to get system info:' + response.statusText);
   }
 };
 

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Alert,
   ScrollView,
@@ -22,6 +22,19 @@ const App = () => {
   const [clientId, setClientId] = useState('');
   const [clientSecret, setClientSecret] = useState('');
   const [data, setData] = useState<string[]>(['No data']);
+
+  useEffect(() => {
+    AsyncStorage.getItem('clientId')
+      .then(value => {
+        setClientId(value || '');
+      })
+      .catch(() => {});
+    AsyncStorage.getItem('clientSecret')
+      .then(value => {
+        setClientSecret(value || '');
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <View style={{flex: 1, backgroundColor: 'black', padding: 10}}>
@@ -50,6 +63,7 @@ const App = () => {
         <TouchableHighlight
           onPress={async () => {
             try {
+              storeCredentials(clientId, clientSecret);
               setData(['']);
               const token = await getToken(clientId, clientSecret);
               setData(prev => {
@@ -90,6 +104,11 @@ const App = () => {
       <Text style={[styles.label, {padding: 20}]}>{'Tero Paananen 2023'}</Text>
     </View>
   );
+};
+
+const storeCredentials = (clientId: string, clientSecret: string) => {
+  AsyncStorage.setItem('clientId', clientId).catch(() => {});
+  AsyncStorage.setItem('clientSecret', clientSecret).catch(() => {});
 };
 
 const styles = StyleSheet.create({

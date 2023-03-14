@@ -47,7 +47,7 @@ const App = () => {
               });
               const info = await getSystemInfo(ret);
               setData(prev => {
-                return ['\nSystemId:', info, ...prev];
+                return ['\nDeviceId:', info, ...prev];
               });
             } catch (error: any) {
               Alert.alert('Nibe', error.message);

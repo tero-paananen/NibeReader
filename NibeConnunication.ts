@@ -7,7 +7,7 @@ export type NibeData = {tempOutside: string};
 
 const REDIRECT_URL = 'nibereader://authorized';
 
-let systemId = null;
+let deviceId = null;
 let accessToken = null;
 
 export const authorize = async (clientId: string): Promise<boolean> => {
@@ -95,10 +95,14 @@ export const getSystemInfo = async (token: string): Promise<string> => {
 
     if (data) {
       if (data.systems && data.systems.length) {
+        console.log('> system', data.systems[0]);
         const system = data.systems[0];
         //const name = system.name;
-        systemId = system.systemId;
-        return system.systemId;
+        if (system.devices && system.devices.length) {
+          const device = system.devices[0];
+          deviceId = device.id;
+          return deviceId;
+        }
       }
     }
     throw Error('Failed to get system info: Data missing');

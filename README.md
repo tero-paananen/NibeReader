@@ -19,3 +19,6 @@ https://www.npmjs.com/package/jsmodbus
 ### Pictures of React Native app and Node.js console executable
 
 <img src="https://user-images.githubusercontent.com/54746036/225132449-71b3c88c-cdbe-4c88-b033-9117eeff6e20.png" width=40% height=40%>
+
+<img src="https://user-images.githubusercontent.com/54746036/226870992-411b8bb5-ed4b-40cc-9fe5-fc51c760d80c.png" width=40% height=40%>
+

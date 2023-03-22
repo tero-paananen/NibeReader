@@ -37,7 +37,7 @@ const main = async () => {
   try {
     await askDeviceIP();
     await connect();
-    await readingRegisters();
+    await readingLoop();
   } catch (error) {
     console.log(error);
   } finally {
@@ -85,6 +85,28 @@ const connect = async () => {
 };
 
 /**
+ * Reads registers loop until user aborts
+ */
+const readingLoop = async () => {
+  return new Promise(async (resolve, reject) => {
+    let reading = true;
+    try {
+      while (reading) {
+        const readingQuestion = await ask('Read registers? (y/n): ');
+        if (readingQuestion.length === 0 || readingQuestion === 'y') {
+          await readingRegisters();
+        } else {
+          throw new Error('User aborted');
+        }
+      }
+    } catch (error) {
+      reading = false;
+      reject(error.message);
+    }
+  });
+};
+
+/**
  * Reads registers from Nibe device
  */
 const readingRegisters = async () => {
@@ -101,8 +123,9 @@ const readingRegisters = async () => {
   tempOutside = tempOutside.readInt16BE().toString() / 10; // scale factor is 10
   kompressorHz = kompressorHz.readInt16BE().toString() / 1; // scale factor is 1
 
-  console.log('Outside temperature: ' + tempOutside);
-  console.log('Kompressor Hz: ' + kompressorHz);
+  console.log('> Outside temperature: ' + tempOutside);
+  console.log('> Kompressor Hz: ' + kompressorHz);
+  console.log('\n');
 };
 
 /**

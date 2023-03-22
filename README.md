@@ -1,6 +1,6 @@
 # NibeReader
 
-This React Native application communicates and read values from Nibe ground source heatin pump using My Uplink API https://dev.myuplink.com/
+This React Native application communicates and read values from Nibe ground source heating pump using My Uplink API https://dev.myuplink.com/
 
 
 ### My Uplink API

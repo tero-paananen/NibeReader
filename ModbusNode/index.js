@@ -88,6 +88,8 @@ const connect = async () => {
  * Reads registers from Nibe device
  */
 const readingRegisters = async () => {
+  console.log('\n');
+  console.log('Reading registers...');
   const results = await Promise.all([
     client.readInputRegisters(1, 1), // BT1 - outside temperature
     client.readInputRegisters(140, 1), // kompressor Hz

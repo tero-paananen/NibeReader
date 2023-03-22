@@ -8,7 +8,7 @@ This React Native application communicates and read values from Nibe ground sour
 Register app in https://dev.myuplink.com/apps to get needed Client Identifier and Client Secret
 
 
-### Using Mobus sockets
+### Using Modbus sockets
 
 ModbusNode folder contains Node.js executable that communicates with Nibe using Modbus socket.
 Modbus socket cannot be used from React Native currently. See Modbus communication https://github.com/tero-paananen/NibeReader/blob/main/ModbusNode/index.js

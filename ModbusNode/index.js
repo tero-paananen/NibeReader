@@ -129,6 +129,16 @@ const readingRegisters = async () => {
 };
 
 /**
+ * Writes registers to Nibe device
+ */
+const writeRegister = async (register, value) => {
+  // NOT TESTED
+  console.log('\n');
+  console.log('Writing registers...');
+  await client.writeSingleRegister(register, value);
+};
+
+/**
  * Helper function to ask user for input
  */
 const ask = question => {

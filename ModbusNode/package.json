@@ -1,0 +1,11 @@
+{
+  "name": "nibe-modbus",
+  "version": "1.0.0",
+  "description": "Modbus conversation with Nibe",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Tero Paananen",
+  "license": "ISC"
+}

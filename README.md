@@ -11,7 +11,7 @@ Register app in https://dev.myuplink.com/apps to get needed Client Identifier an
 ### Using Mobus sockets
 
 ModbusNode folder contains Node.js executable that communicates with Nibe using Modbus socket.
-Modbus socket cannot be used from React Native currently.
+Modbus socket cannot be used from React Native currently. See Modbus communication https://github.com/tero-paananen/NibeReader/blob/main/ModbusNode/index.js
 
 https://www.npmjs.com/package/jsmodbus
 

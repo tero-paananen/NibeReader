@@ -71,8 +71,8 @@ const connect = async () => {
       resolve(true);
     });
     socket.on('error', e => {
-      console.log('Socket error', e.error);
-      reject(e.error);
+      console.log('Socket error', e.message);
+      reject(e.message);
     });
     socket.on('close', () => {
       console.log('Socket closed');

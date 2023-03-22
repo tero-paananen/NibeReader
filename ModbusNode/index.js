@@ -37,6 +37,7 @@ const main = async () => {
   try {
     await askDeviceIP();
     await connect();
+    await readingRegisters();
   } catch (error) {
     console.log(error);
   } finally {
@@ -81,6 +82,25 @@ const connect = async () => {
   socket.connect(option);
 
   return connectionPromise;
+};
+
+/**
+ * Reads registers from Nibe device
+ */
+const readingRegisters = async () => {
+  const results = await Promise.all([
+    client.readInputRegisters(1, 1), // BT1 - outside temperature
+    client.readInputRegisters(140, 1), // kompressor Hz
+  ]);
+  let tempOutside = results[0].response._body._valuesAsBuffer;
+  let kompressorHz = results[1].response._body._valuesAsBuffer;
+
+  // Convert HEX to Decimal and divide by the scalefactor
+  tempOutside = tempOutside.readInt16BE().toString() / 10; // scale factor is 10
+  kompressorHz = kompressorHz.readInt16BE().toString() / 1; // scale factor is 1
+
+  console.log('Outside temperature: ' + tempOutside);
+  console.log('Kompressor Hz: ' + kompressorHz);
 };
 
 /**

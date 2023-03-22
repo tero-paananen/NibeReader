@@ -5,7 +5,7 @@ const modbus = require('jsmodbus');
 console.log('\n');
 console.log('================================');
 console.log('Nibe Modbus');
-console.log('Tero Paananen 2022');
+console.log('Tero Paananen 2023');
 console.log('================================');
 console.log('\n');
 

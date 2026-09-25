@@ -44,7 +44,7 @@ Save and restart the MCP connection in Codex. Configuration is described in the 
 - "Show outdoor and supply temperature trends for the last 24 hours, and identify gaps."
 - "Stop collecting Nibe history."
 
-See [Talking to Nibe MCP](CONVERSATION_EXAMPLES.md) for example conversations covering summaries, temperature differences, event notes and comparisons.
+See [Talking to Nibe MCP](CONVERSATION_EXAMPLES.md) for example conversations covering summaries, temperature differences, event notes and comparisons. See [MCP request and data flow](MCP_FLOW.md) for architecture diagrams and the path each request takes through the server, collector, Modbus and local storage.
 
 ## Lifecycle
 

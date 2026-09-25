@@ -1,4 +1,4 @@
-# NibeReader
+# NibeReader — Heat Pump Monitoring with Codex, CLI & Mobile
 
 Read Nibe heat-pump data through a mobile app, a command-line reader, or Codex.
 

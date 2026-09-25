@@ -67,6 +67,8 @@ After connecting, try:
 
 See [example conversations with Nibe MCP](NibeMCP/CONVERSATION_EXAMPLES.md) for prompts and explanations of what each tool does.
 
+See [MCP request and data flow](NibeMCP/MCP_FLOW.md) for architecture diagrams showing how requests pass through Codex, the MCP server, the collector, Modbus, and local storage.
+
 ### Collection starts only when requested
 
 Opening Codex, connecting the MCP server, or reading current values **does not start history collection**.

@@ -75,6 +75,7 @@ Change collection settings by stopping the collector, updating the environment, 
 
 | Tool | Inputs | Output |
 | --- | --- | --- |
+| `check_device_health` | optional `start`/`end`, `short_run_minutes`, `short_run_count` | Live alarm/compressor report with historical cycling evidence and limitations |
 | `list_metrics` | none | Metric definitions, units, register IDs, validation status |
 | `read_live` | optional `metric_ids` | Fresh readings, per-reading timestamp, raw/scaled value, quality/error |
 | `start_collection` | none | Collector PID and effective settings; idempotent |
@@ -148,3 +149,37 @@ npm test
 Tests use ephemeral loopback Modbus simulators and temporary databases, never your pump. They check decoding, scaling, unit ID, read-only function codes, protocol exceptions, malformed/fragmented responses, timeouts, reconnects, history aggregation/retention/gaps, timezone handling, MCP discovery/calls, concurrent first starts, stopping, restart after a crash, and collection surviving MCP-client shutdown. SIGSTOP/SIGCONT simulates process suspension; an actual Mac sleep/reboot and physical-display comparison remain manual acceptance checks.
 
 No collector is started by installation, build, or normal server startup. Test collectors are explicitly started in isolated temporary directories and stopped during cleanup.
+
+## Alarm and compressor health report
+
+Ask: **“Check my NIBE alarms and compressor health for the last 24 hours.”**
+
+`check_device_health` combines fresh live readings with retained compressor history and returns both a readable report and structured evidence. Its target is the user-reported **S1255-12, software 4.13.12**; this metadata is not automatic model detection or proof of physical validation. It covers alarms, operating priority, actual frequency, status, starts, runtime and observed cycling. No collection, alarm reset or pump setting change is triggered.
+
+Inputs are optional `start` and `end` (supply both as timezone-qualified ISO timestamps; default: preceding 24 hours), `short_run_minutes` (greater than 0 through 60; default 10), and `short_run_count` (integer 2–1000; default 3). Historical data is queried over `[start,end)`; live readings always describe now even when a past period is requested.
+
+New function-04 input readings:
+
+| Metric ID | Register | Type / scaling |
+| --- | --- | --- |
+| `active_alarm` | 2195 | u8; 0 no alarm, 1 active |
+| `alarm_number` | 1975 | u16; untranslated reported code |
+| `operating_priority` | 1028 | u8; 10 off, 20 hot water, 30 heating, 40 pool, 60 cooling |
+| `actual_compressor_frequency` | 1046 | u16 / 10 Hz |
+| `compressor_status` | 1100 | u8; 0 off, 1 on |
+| `compressor_starts` | 1083 | s32; starts |
+| `compressor_runtime` | 1087 | s32; hours |
+
+Definitions follow [NIBE Modbus technical information](https://professional.nibe.eu/document/Technical%20information%20%28TIF%29/M12676EN.pdf). Counters read two registers in one request, with the low word first and big-endian bytes within each word. Unknown state codes remain numeric with an `Unknown` label. Unsupported readings remain unavailable. Requested frequency at register 140 remains a separate metric.
+
+Each report section uses `no concerns observed`, `needs attention`, or `insufficient data`, and retains incomplete-data indicators alongside findings. The active-alarm flag establishes alarm presence; the alarm number is not an exhaustive list. An unknown code is shown without an invented description, with a link to NIBE's alarm lookup.
+
+Cycling uses on/off history, not requested frequency. Complete runs require observed off-to-on and on-to-off transitions without failures or sampling gaps. The duration bounds reflect uncertainty between samples. A possible short-cycling warning requires at least three runs whose upper duration bounds are strictly below ten minutes in a fully observed rolling hour, at a cadence and actual spacing no greater than 60 seconds. The thresholds are configurable observations, not NIBE fault limits. A reassuring cycling result requires at least 24 hours, 90% valid status coverage, sampling no coarser than 60 seconds, and observed operation. Inactivity alone is not a fault. Missing history, incomplete runs, and gaps do not become fabricated starts or runtime.
+
+Counter differences use observed endpoints and report their elapsed time. Any observed decrease or negative counter invalidates that counter's difference as a possible reset. Whole-hour runtime resolution limits short-period interpretation; unobserved resets cannot be ruled out. Detailed run, warning-window and gap lists are capped at 1,000 with truncation flags.
+
+After upgrading, reconnect the MCP server. An already-running older collector lists missing metric capabilities in `get_status`; affected live readings explain that you must explicitly stop and restart collection to load the new profile. Existing history is preserved, and new metrics have no history until collected. Collection still starts only when requested.
+
+### Physical acceptance on your pump
+
+Compare actual frequency, on/off state, total starts, runtime, current priority and alarm state against the operating display. Compare the definitions with the pump's register export from menu 7.5.9. Check both running and idle observations when naturally available; do not induce an alarm for testing. Until these comparisons are completed, the report always declares the profile physically unverified. This report cannot certify mechanical condition.

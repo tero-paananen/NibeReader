@@ -3,6 +3,7 @@ import type { Config } from './config.js';
 
 export type Method = 'status' | 'live' | 'stop';
 export interface CollectorStatus {
+  metric_ids?: string[];
   running: boolean; pid: number; started_at: string; device: string;
   sample_seconds: number; retention_days: number; stopping: boolean;
   last_poll: string | null; last_successful_sample: string | null; last_error: string | null;

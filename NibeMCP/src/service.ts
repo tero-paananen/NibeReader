@@ -1,3 +1,4 @@
+import {buildHealthReport, healthOptions, type HealthRequest} from './health.js';
 import {summarizeOperation, analyzeTemperatureDelta, comparePeriods} from './analysis.js';
 import {recordEvent, listEvents} from './events.js';
 import { spawn } from 'node:child_process';
@@ -9,7 +10,7 @@ import { collectorStatus, rpc, type CollectorStatus } from './ipc.js';
 import { acquireLock } from './lock.js';
 import { historyStatus, readHistory, type HistoryRequest } from './history.js';
 import { readPump } from './modbus.js';
-import { metrics, selectMetrics, type Reading } from './metrics.js';
+import { metrics, healthMetricIds, selectMetrics, type Reading } from './metrics.js';
 
 const pause = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 function checkIdentity(c: Config, status: CollectorStatus) {
@@ -20,23 +21,40 @@ export class NibeService {
   constructor(readonly config: Config) {}
   listMetrics() {
     return { metrics: metrics.map(m => ({ ...m, register_type: 'input', validation: 'requires_comparison_with_pump_display' })),
-      note: 'These definitions come from NibeReader. Successful reads alone do not establish physical validation. Frequency is requested, not measured.' };
+      note: 'These definitions come from NibeReader. Successful reads alone do not establish physical validation. Requested frequency is not measured; actual_compressor_frequency is a separate reading.' };
   }
   async status() {
     const collector = await collectorStatus(this.config);
     if (collector) checkIdentity(this.config, collector);
     return { collection: collector ?? { running: false }, history: historyStatus(this.config),
+      missing_collector_metrics: collector ? metrics.filter(m => !(collector.metric_ids ?? metrics.slice(0, 8).map(m => m.id)).includes(m.id)).map(m => m.id) : [],
       configured: Boolean(this.config.host), sample_seconds: this.config.sampleMs / 1000,
       note: 'No collector is started by this operation. Connectivity reflects the last collector poll, not a new probe.' };
   }
   async live(ids?: string[]) {
-    selectMetrics(ids);
+    const selected = selectMetrics(ids);
     const collector = await collectorStatus(this.config);
     if (collector) {
       checkIdentity(this.config, collector);
-      return { source: 'collector', readings: await rpc<Reading[]>(this.config, 'live', ids) };
+      const supported = collector.metric_ids ?? metrics.slice(0, 8).map(m => m.id);
+      const available = selected.filter(m => supported.includes(m.id)).map(m => m.id);
+      const rows = available.length ? await rpc<Reading[]>(this.config, 'live', available) : [];
+      return { source: 'collector', readings: selected.map(m => rows.find(r => r.metric_id === m.id) ?? {
+        metric_id: m.id, timestamp: new Date().toISOString(), raw_value: null, value: null, unit: m.unit,
+        quality: 'unavailable' as const, error: 'Collector lacks this metric. Explicitly stop and restart collection to load the new profile.',
+      }) };
     }
     return { source: 'temporary_connection', readings: await readPump(this.config, ids) };
+  }
+  async checkDeviceHealth(request: HealthRequest = {}) {
+    const now = Date.now();
+    const options = healthOptions(request, now);
+    const normalized = {...request, start: new Date(options.start).toISOString(), end: new Date(options.end).toISOString()};
+    let readings: Reading[];
+    try { readings = (await this.live(healthMetricIds)).readings; }
+    catch (error) { readings = healthMetricIds.map(id => ({metric_id: id, timestamp: new Date().toISOString(), raw_value: null, value: null,
+      unit: metrics.find(m => m.id === id)!.unit, quality: 'error', error: error instanceof Error ? error.message : String(error)})); }
+    return buildHealthReport(this.config, normalized, readings, Date.now());
   }
   history(request: HistoryRequest) { return readHistory(this.config, request); }
   summarizeOperation(request: Parameters<typeof summarizeOperation>[1]) { return summarizeOperation(this.config, request); }

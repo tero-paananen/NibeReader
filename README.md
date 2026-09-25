@@ -87,6 +87,7 @@ Sampling and retention are configurable.
 
 | Tool | Purpose |
 | --- | --- |
+| `check_device_health` | Report live alarms and compressor readings with historical cycling evidence |
 | `list_metrics` | List available readings and units |
 | `read_live` | Fetch current readings without starting collection |
 | `start_collection` | Start local history collection |
@@ -110,7 +111,8 @@ The initial register profile includes:
 - Hot-water charging temperature — BT6
 - Brine inlet temperature — BT10
 - Brine outlet temperature — BT11
-- Requested compressor frequency
+- Requested and actual compressor frequency
+- Active alarm, alarm number, operating priority, compressor status, starts and runtime
 
 **Requested compressor frequency is not measured compressor speed.**
 

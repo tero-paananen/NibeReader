@@ -2,11 +2,11 @@ import { Socket } from 'node:net';
 import modbus from 'jsmodbus';
 import { requireHost, type Config } from './config.js';
 import { acquireLock } from './lock.js';
-import { decode, selectMetrics, type Reading } from './metrics.js';
+import { decode, selectMetrics, registerCount, stateLabel, type Reading } from './metrics.js';
 
 // Validate complete MBAP frames before passing them to jsmodbus's parser.
 // Its older parser can throw on truncated/invalid byte counts. This reader only
-// requests one input register at a time, so valid responses have fixed lengths.
+// requests one or two input registers at a time.
 class ReadSocket extends Socket {
   private frameBuffer = Buffer.alloc(0);
   constructor(private readonly unitId: number) { super(); }
@@ -15,13 +15,13 @@ class ReadSocket extends Socket {
     this.frameBuffer = Buffer.concat([this.frameBuffer, args[0]]);
     while (this.frameBuffer.length >= 7) {
       const length = this.frameBuffer.readUInt16BE(4);
-      if (![3, 5].includes(length) || this.frameBuffer.readUInt16BE(2) !== 0 || this.frameBuffer[6] !== this.unitId) {
+      if (![3, 5, 7].includes(length) || this.frameBuffer.readUInt16BE(2) !== 0 || this.frameBuffer[6] !== this.unitId) {
         this.destroy(new Error('Malformed Modbus response header')); return true;
       }
       if (this.frameBuffer.length < length + 6) return true;
       const frame = this.frameBuffer.subarray(0, length + 6);
       this.frameBuffer = this.frameBuffer.subarray(length + 6);
-      if (!((length === 5 && frame[7] === 4 && frame[8] === 2) || (length === 3 && frame[7] === 0x84))) {
+      if (!(([5, 7].includes(length) && frame[7] === 4 && frame[8] === length - 3) || (length === 3 && frame[7] === 0x84))) {
         this.destroy(new Error('Malformed Modbus input register response')); return true;
       }
       try { super.emit(event, frame); }
@@ -73,9 +73,9 @@ export async function readPump(c: Config, ids?: string[]): Promise<Reading[]> {
     for (const m of selected) {
       const base = { metric_id: m.id, unit: m.unit };
       try {
-        const result = await boundedRequest(socket, c.timeoutMs, () => client.readInputRegisters(m.register, 1));
+        const result = await boundedRequest(socket, c.timeoutMs, () => client.readInputRegisters(m.register, registerCount(m)));
         const raw = decode(m, result.response.body.valuesAsBuffer);
-        readings.push({ ...base, timestamp: new Date().toISOString(), raw_value: raw, value: raw / m.divisor, quality: 'ok' });
+        readings.push({ ...base, timestamp: new Date().toISOString(), raw_value: raw, value: raw / m.divisor, quality: 'ok', label: stateLabel(m, raw / m.divisor) });
       } catch (error) {
         const e = error as { err?: string; message?: string; response?: { body?: { code?: number } } };
         const unavailable = e.err === 'ModbusException' && [1, 2, 3].includes(e.response?.body?.code ?? -1);

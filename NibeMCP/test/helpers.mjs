@@ -14,7 +14,7 @@ export async function until(check, timeout = 6000) {
 export async function fixture() {
   const sockets = new Set();
   const requests = [];
-  const behavior = { silent: false, rejectRegister: undefined, malformed: false, fragmented: false };
+  const behavior = { silent: false, rejectRegister: undefined, malformed: false, fragmented: false, values: {}, wrongCount: false };
   const server = net.createServer(socket => {
     sockets.add(socket);
     socket.on('close', () => sockets.delete(socket));
@@ -31,11 +31,16 @@ export async function fixture() {
         requests.push({ fc: packet[7], address, unitId: packet[6], count: packet.readUInt16BE(10) });
         if (behavior.silent) continue;
         const exception = address === behavior.rejectRegister;
-        const response = Buffer.alloc(exception ? 9 : 11);
+        const count = behavior.wrongCount ? 1 : packet.readUInt16BE(10);
+        const response = Buffer.alloc(exception ? 9 : 9 + count * 2);
         packet.copy(response, 0, 0, 4);
-        response.writeUInt16BE(exception ? 3 : 5, 4);
-        response[6] = packet[6]; response[7] = exception ? 0x84 : 4; response[8] = 2;
-        if (!exception) response.writeUInt16BE(address === 1 ? 0xff85 : address === 140 ? 45 : 325, 9);
+        response.writeUInt16BE(exception ? 3 : 3 + count * 2, 4);
+        response[6] = packet[6]; response[7] = exception ? 0x84 : 4; response[8] = exception ? 2 : count * 2;
+        if (!exception) {
+          const value = behavior.values[address] ?? ({1: 0xff85, 140: 45, 2195: 0, 1975: 0, 1028: 30, 1046: 450, 1100: 1, 1083: 70000, 1087: 90000}[address] ?? 325);
+          response.writeUInt16BE(value & 0xffff, 9);
+          if (count === 2) response.writeUInt16BE((value >>> 16) & 0xffff, 11);
+        }
         if (behavior.malformed) response[8] = 7;
         if (behavior.fragmented) {
           socket.write(response.subarray(0, 8));

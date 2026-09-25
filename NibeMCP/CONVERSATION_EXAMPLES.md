@@ -38,6 +38,42 @@ Codex converts the local day into explicit timezone timestamps and uses `summari
 
 Codex uses `read_history` for time-series detail. Neither request starts collection.
 
+## Check alarms and compressor health
+
+> Check my NIBE S1255-12 alarms and compressor health for the last 24 hours.
+
+Codex uses `check_device_health`. The report combines fresh alarm, operating-priority and compressor readings with stored history. It shows actual compressor frequency, on/off status, cumulative starts and runtime, historical counter differences, observed runs and data coverage. It neither starts collection nor saves its live readings to history.
+
+Each section reports **no concerns observed**, **needs attention**, or **insufficient data**, with supporting evidence. An active alarm can require attention even when compressor history is incomplete. The reported alarm number is not an exhaustive fault list; unknown codes remain untranslated, with a link to NIBE's alarm lookup.
+
+The report targets the user-reported S1255-12 with software 4.13.12. Its register readings still need comparison with the pump display and register export. A successful read or “no concerns observed” result does not certify mechanical health.
+
+> Check compressor behavior yesterday, using Europe/Helsinki time. Include any gaps and explain the run durations.
+
+Codex supplies both `start` and `end` as explicit timezone timestamps. Historical analysis covers that period, while live alarms and operating state still describe now. Complete observed runs require off-to-on and on-to-off transitions without gaps or failed samples; runs cut off by the period boundaries are excluded. Reported durations are bounds reflecting sampling uncertainty.
+
+> Is there evidence of frequent short cycling? Show the rule you used.
+
+By default, the report flags **possible frequent short cycling** when at least three complete runs have duration upper bounds strictly below ten minutes within a fully observed rolling hour. That hour requires valid status samples with cadence and actual spacing no greater than 60 seconds. This is a conservative heuristic, not a NIBE fault limit or confirmed compressor fault.
+
+> Repeat the report using a short-run threshold of 8 minutes and at least 4 runs within an hour.
+
+Codex uses `short_run_minutes: 8` and `short_run_count: 4`. These inputs change report interpretation only, not pump settings or collection frequency.
+
+A reassuring cycling assessment requires at least 24 hours, 90% valid status coverage, sufficiently frequent samples and observed operation. Gaps or coarse sampling can make the assessment insufficient. An idle compressor alone is not a fault.
+
+> Read the actual compressor frequency, total starts and total runtime now.
+
+Codex uses `read_live` with `actual_compressor_frequency`, `compressor_starts` and `compressor_runtime`. Actual frequency is separate from requested frequency. Historical counter differences use observed endpoints and show their elapsed period; decreases invalidate the affected difference as a possible reset. Runtime counters have whole-hour resolution.
+
+> Why does the health report say that readings are unavailable or history is insufficient?
+
+Codex explains the returned errors and coverage, using `get_status` to check collector capabilities when appropriate. New readings have no history until collected. An older running collector reports missing metrics and requires an explicit stop/start after the MCP server has been updated and reconnected. Unsupported registers remain unavailable; restarting cannot make an unsupported register valid.
+
+> Stop collection, then start it again to load the new readings. Preserve my existing history.
+
+This explicitly authorizes `stop_collection` followed by `start_collection`. Existing history remains available. A health-check request alone never authorizes this restart or starts collection.
+
 ## Compare temperature differences
 
 > What was the supply minus return temperature difference over the last 24 hours? How complete is the data?
@@ -76,9 +112,9 @@ The comparison includes outdoor temperature even when you select only other metr
 
 The server cannot change it. If you make a change yourself, you can ask Codex to record a note afterward.
 
-> Calculate my COP, energy bill, or compressor start count.
+> Calculate my COP or energy bill.
 
-The current register profile does not provide the measurements needed for those calculations. Requested compressor frequency is not measured speed or a reliable start counter. Codex should explain the missing inputs rather than estimate them from temperature readings.
+The current register profile does not provide the measurements needed for those calculations. Codex should explain the missing inputs rather than estimate them from temperature readings. Compressor starts are available through their dedicated counter; requested compressor frequency is not measured speed or a reliable start counter.
 
 ## Dates and missing data
 

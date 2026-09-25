@@ -1,3 +1,4 @@
+import {metrics} from '../dist/metrics.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, statSync } from 'node:fs';
@@ -17,11 +18,17 @@ test('MCP reads never start collection; explicit start survives MCP exit; single
   try {
     await client.connect(transport);
     const list = await client.listTools();
-    assert.equal(list.tools.length, 11);
+    assert.equal(list.tools.length, 12);
     assert.equal(list.tools.find(t => t.name === 'start_collection').annotations.readOnlyHint, false);
-    for (const name of ['list_metrics', 'get_status', 'read_live']) {
+    assert.equal(list.tools.find(t => t.name === 'check_device_health').annotations.readOnlyHint, true);
+    for (const name of ['list_metrics', 'get_status', 'read_live', 'check_device_health']) {
       const result = await client.callTool({ name, arguments: {} });
       assert(!result.isError, JSON.stringify(result));
+      if (name === 'check_device_health') {
+        assert.match(result.content[0].text, /NIBE alarm and compressor report/);
+        assert.equal(result.structuredContent.alarms.active, false);
+        assert.equal(result.structuredContent.compressor.cycling.outcome, 'insufficient data');
+      }
       assert.equal(await collectorStatus(f.c), undefined);
     }
     const history = await client.callTool({ name: 'read_history', arguments: { metric_ids: ['outdoor_temperature'], start: new Date(Date.now() - 60000).toISOString(), end: new Date().toISOString() } });
@@ -98,9 +105,9 @@ test('process suspension causes a gap without replaying missed samples', { timeo
     await delay(2400);
     assert.equal(f.requests.length, before);
     process.kill(pid, 'SIGCONT');
-    await until(() => f.requests.length >= before + 8);
+    await until(() => f.requests.length >= before + metrics.length);
     await delay(150);
-    assert(f.requests.length <= before + 8);
+    assert(f.requests.length <= before + metrics.length);
     const result = f.service.history({ metric_ids: ['outdoor_temperature'], start: new Date(Date.now() - 10000).toISOString(), end: new Date().toISOString() });
     assert(result.series[0].gaps.some(g => Date.parse(g.end) - Date.parse(g.start) > 1000));
   } finally { if (pid) { try { process.kill(pid, 'SIGCONT'); } catch {} } await f.cleanup(); }

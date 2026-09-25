@@ -16,6 +16,7 @@ export async function runCollector(c: Config) {
   privateDirectory(dirname(c.socketPath));
   try { unlinkSync(c.socketPath); } catch (e) { if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e; }
   const status: CollectorStatus = {
+    metric_ids: metrics.map(m => m.id),
     running: true, stopping: false, pid: process.pid, started_at: new Date().toISOString(), device: identity(c),
     sample_seconds: c.sampleMs / 1000, retention_days: c.retentionDays,
     last_poll: null, last_successful_sample: null, last_error: null,

@@ -35,6 +35,8 @@ The MCP integration is **read-only toward the heat pump**. It exposes no tools f
 
 The Modbus connection does not require a myUplink account or an OpenAI API key.
 
+Before connecting, follow [Configure NIBE S-series for Modbus](docs/NIBE_S_SERIES_MODBUS_SETUP.md) to enable Modbus on the pump, find its IP address, and verify readings.
+
 ### Quick start
 
 From the repository root:

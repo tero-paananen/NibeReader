@@ -183,6 +183,10 @@ The original React Native app and Modbus console example:
 
 <img src="https://user-images.githubusercontent.com/54746036/226870992-411b8bb5-ed4b-40cc-9fe5-fc51c760d80c.png" alt="NibeReader Modbus console example" width="40%">
 
+Nibe MCP in Codex, collecting history and reading live temperatures:
+
+<img src="docs/screenshots/NibeMCP.png" alt="Codex using Nibe MCP to start history collection and read outdoor and supply temperatures" width="80%">
+
 ## Author
 
 Tero Paananen

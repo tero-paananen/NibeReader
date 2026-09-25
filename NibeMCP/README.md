@@ -44,13 +44,15 @@ Save and restart the MCP connection in Codex. Configuration is described in the 
 - "Show outdoor and supply temperature trends for the last 24 hours, and identify gaps."
 - "Stop collecting Nibe history."
 
+See [Talking to Nibe MCP](CONVERSATION_EXAMPLES.md) for example conversations covering summaries, temperature differences, event notes and comparisons.
+
 ## Lifecycle
 
 Only `start_collection` (or the explicit CLI `start` command) launches the detached collector. Reading values, querying history, opening Codex, or rebooting the Mac never starts it. Once started, it continues after Codex closes. Stopping preserves history.
 
 The collector does not prevent Mac sleep. While asleep, shut down, or disconnected, readings are missing. A process still running resumes after wake, without catching up missed polls. After a crash or reboot it stays stopped until explicitly started again. History cannot be recovered for periods before collection began.
 
-The collector owns one SQLite history writer. User-only Unix socket permissions restrict local IPC. Separate SQLite transactions act as OS-backed singleton and pump-access locks: process death releases them, and sleep does not cause false stale-lock expiry. Concurrent MCP sessions share the collector. Live reads use its current in-flight snapshot, or create a short-lived serialized Modbus connection when it is stopped. Live reads are not inserted into history.
+The collector writes readings to SQLite; MCP event tools write local journal notes to the same database. User-only Unix socket permissions restrict local IPC. Separate SQLite transactions act as OS-backed singleton and pump-access locks: process death releases them, and sleep does not cause false stale-lock expiry. Concurrent MCP sessions share the collector. Live reads use its current in-flight snapshot, or create a short-lived serialized Modbus connection when it is stopped. Live reads are not inserted into history.
 
 The connection uses only Modbus function 04 (read input registers). Start/stop tools change local logging state, never the pump's settings. No write-register API is exposed.
 
@@ -79,10 +81,25 @@ Change collection settings by stopping the collector, updating the environment, 
 | `stop_collection` | none | Confirmation after polling ends and locks are released; idempotent |
 | `get_status` | none | Running/stopped state, last poll/error/success, historical time bounds |
 | `read_history` | `metric_ids`, `start`, `end`, optional `interval` | Raw readings or bucketed min/mean/max/counts, and explicit gaps |
+| `summarize_operation` | `start`, `end`, optional `metric_ids` | Sample-weighted min/mean/max, first/last/change, counts, gaps and coverage |
+| `analyze_temperature_delta` | `start`, `end`, `pair`: `heating` or `brine` | Aligned supply–return or brine inlet–outlet differences, unmatched counts and coverage |
+| `record_event` | `timestamp`, `category`, `note` | A user-reported local journal entry; never a command to the pump |
+| `list_events` | `start`, `end`, optional `category` | Up to 1,000 notes in chronological order, with a truncation flag |
+| `compare_periods` | `before` and `after` objects with `start`/`end`, optional `metric_ids` | Both summaries and after-minus-before mean changes, including outdoor temperature |
 
 History accepts ISO 8601 timestamps with `Z` or an explicit UTC offset and uses the half-open interval `[start, end)`. `interval` is an integer number of seconds. At most 1,000 points per metric are returned; larger raw requests aggregate automatically. Failed samples are excluded from numerical aggregates and counted separately. Empty buckets are omitted; `gaps` identifies missing coverage. Gap lists are capped at 1,000, with `gaps_truncated` when necessary.
 
 A successful sample covers one configured sampling interval for coverage reporting. This is a sampling-coverage convention, not a claim that the measured value remained constant. No interpolation, fabricated zeros, or backfill is used. UTC storage avoids daylight-saving ambiguity. Expired rows are deleted on collection writes and excluded from queries even while collection is stopped. SQLite can retain reusable allocated disk space after pruning.
+
+## Analysis and local journal
+
+Analysis reads stored history without connecting to the pump or starting collection. Empty statistics are `null`, not zero. Coverage is calculated over the requested period, including unavailable or expired history; gap lists are capped at 1,000 with a truncation flag. Statistics use all retained successful samples, not averages of display buckets. First-to-last change describes observed endpoints, not a fitted trend.
+
+Temperature differences pair readings one-to-one in timestamp order within five seconds and half of each reading's sampling interval. Their coverage is the overlap of the two successful sample intervals. Unmatched readings are counted and are not interpolated. Heating means supply minus return; brine means inlet minus outlet.
+
+Period comparisons always include outdoor temperature for context. They do not normalize for weather or operating mode. Temperature indicators cannot establish COP, energy savings, faults, or causation. Requested compressor frequency does not establish actual compressor cycling.
+
+`record_event` writes only local SQLite notes and is marked as a local write in MCP annotations. Categories contain 1–80 characters and notes 1–4,000 characters after trimming. Entries have unique IDs and creation timestamps; repeated calls create separate entries. Category filters match exactly. Notes are user reports, not verified setting changes, and are retained independently of readings. Existing databases gain the events table on their next local write; listing notes on an older database returns an empty list without migrating it.
 
 ## Register profile and physical validation
 

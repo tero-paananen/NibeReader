@@ -17,7 +17,7 @@ test('MCP reads never start collection; explicit start survives MCP exit; single
   try {
     await client.connect(transport);
     const list = await client.listTools();
-    assert.equal(list.tools.length, 6);
+    assert.equal(list.tools.length, 11);
     assert.equal(list.tools.find(t => t.name === 'start_collection').annotations.readOnlyHint, false);
     for (const name of ['list_metrics', 'get_status', 'read_live']) {
       const result = await client.callTool({ name, arguments: {} });
@@ -27,6 +27,25 @@ test('MCP reads never start collection; explicit start survives MCP exit; single
     const history = await client.callTool({ name: 'read_history', arguments: { metric_ids: ['outdoor_temperature'], start: new Date(Date.now() - 60000).toISOString(), end: new Date().toISOString() } });
     assert(!history.isError);
     assert.equal(existsSync(databasePath(f.c)), false);
+    const range = {start: new Date(Date.now() - 60000).toISOString(), end: new Date().toISOString()};
+    const requestsBeforeAnalysis = f.requests.length;
+    for (const [name, args] of [
+      ['summarize_operation', range], ['analyze_temperature_delta', {...range, pair: 'heating'}],
+      ['compare_periods', {before: range, after: range}], ['list_events', range],
+    ]) {
+      assert.equal(list.tools.find(t => t.name === name).annotations.readOnlyHint, true);
+      const output = await client.callTool({name, arguments: args});
+      assert(!output.isError, JSON.stringify(output));
+    }
+    assert.equal(existsSync(databasePath(f.c)), false);
+    const recorded = await client.callTool({name: 'record_event', arguments: {timestamp: range.start, category: 'maintenance', note: 'User cleaned filter'}});
+    assert(!recorded.isError);
+    assert.equal(list.tools.find(t => t.name === 'record_event').annotations.readOnlyHint, false);
+    assert.equal(list.tools.find(t => t.name === 'record_event').annotations.idempotentHint, false);
+    const notes = await client.callTool({name: 'list_events', arguments: range});
+    assert.equal(notes.structuredContent.events.length, 1);
+    assert.equal(f.requests.length, requestsBeforeAnalysis);
+    assert.equal(await collectorStatus(f.c), undefined);
     const invalid = await client.callTool({ name: 'read_live', arguments: { metric_ids: ['bad'] } });
     assert(invalid.isError);
     const started = await client.callTool({ name: 'start_collection', arguments: {} });

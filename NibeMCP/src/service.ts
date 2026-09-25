@@ -1,3 +1,5 @@
+import {summarizeOperation, analyzeTemperatureDelta, comparePeriods} from './analysis.js';
+import {recordEvent, listEvents} from './events.js';
 import { spawn } from 'node:child_process';
 import { closeSync, existsSync, openSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -37,6 +39,11 @@ export class NibeService {
     return { source: 'temporary_connection', readings: await readPump(this.config, ids) };
   }
   history(request: HistoryRequest) { return readHistory(this.config, request); }
+  summarizeOperation(request: Parameters<typeof summarizeOperation>[1]) { return summarizeOperation(this.config, request); }
+  analyzeTemperatureDelta(request: Parameters<typeof analyzeTemperatureDelta>[1]) { return analyzeTemperatureDelta(this.config, request); }
+  comparePeriods(request: Parameters<typeof comparePeriods>[1]) { return comparePeriods(this.config, request); }
+  recordEvent(request: Parameters<typeof recordEvent>[1]) { return recordEvent(this.config, request); }
+  listEvents(request: Parameters<typeof listEvents>[1]) { return listEvents(this.config, request); }
   async start() {
     const c = this.config;
     requireHost(c);

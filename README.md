@@ -21,6 +21,8 @@ You can ask Codex to:
 - Start or stop history collection.
 - Summarize stored readings and identify missing periods.
 - Check the collector’s status.
+- Summarize operation and compare temperature differences or two historical periods.
+- Record local notes about maintenance or adjustments you made yourself.
 
 The MCP integration is **read-only toward the heat pump**. It exposes no tools for changing heating settings.
 
@@ -61,6 +63,8 @@ After connecting, try:
 
 > Stop collecting Nibe history.
 
+See [example conversations with Nibe MCP](NibeMCP/CONVERSATION_EXAMPLES.md) for prompts and explanations of what each tool does.
+
 ### Collection starts only when requested
 
 Opening Codex, connecting the MCP server, or reading current values **does not start history collection**.
@@ -87,6 +91,11 @@ Sampling and retention are configurable.
 | `stop_collection` | Stop collection and preserve history |
 | `get_status` | Check collector state and historical coverage |
 | `read_history` | Query stored readings, aggregates, and gaps |
+| `summarize_operation` | Summarize stored readings with statistics and coverage |
+| `analyze_temperature_delta` | Analyze aligned heating or brine temperature differences |
+| `record_event` | Save a local note about an observation or action you already took |
+| `list_events` | Retrieve local journal notes |
+| `compare_periods` | Compare historical periods with outdoor-temperature context |
 
 ### Supported readings
 

@@ -20,11 +20,16 @@ export function openHistory(c: Config, writable = false): DatabaseSync | undefin
         PRIMARY KEY(metric_id, ts)
       );
       CREATE INDEX IF NOT EXISTS readings_time ON readings(ts);
-      PRAGMA user_version=1;
+      CREATE TABLE IF NOT EXISTS events (
+        id TEXT PRIMARY KEY, ts INTEGER NOT NULL, category TEXT NOT NULL, note TEXT NOT NULL,
+        created_at INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS events_time ON events(ts);
+      PRAGMA user_version=2;
     `);
     const stored = db.prepare("SELECT value FROM metadata WHERE key='device'").get() as { value: string } | undefined;
     if (stored && c.host && stored.value !== identity(c)) throw new Error('This data directory belongs to a different pump endpoint. Use its original NIBE_HOST or a separate NIBE_DATA_DIR.');
-    if (writable && !stored) db.prepare("INSERT INTO metadata VALUES ('device', ?)").run(identity(c));
+    if (writable && !stored && c.host) db.prepare("INSERT INTO metadata VALUES ('device', ?)").run(identity(c));
     return db;
   } catch (error) { db.close(); throw error; }
 }
@@ -50,7 +55,7 @@ export function historyStatus(c: Config) {
 }
 
 export interface HistoryRequest { metric_ids: string[]; start: string; end: string; interval?: number }
-function parseDate(value: string) {
+export function parseDate(value: string) {
   if (!/^\d{4}-\d\d-\d\dT.*(?:Z|[+-]\d\d:\d\d)$/.test(value) || !Number.isFinite(Date.parse(value))) throw new Error('Dates must be ISO 8601 timestamps with an explicit timezone.');
   return Date.parse(value);
 }

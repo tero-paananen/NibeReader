@@ -1,0 +1,24 @@
+{
+  "name": "nibe-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Read-only Nibe MCP server with explicitly started history collection",
+  "type": "module",
+  "engines": { "node": ">=22.18.0" },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "test": "npm run build && node --test --test-concurrency=1 test/*.test.mjs",
+    "status": "node dist/cli.js status",
+    "stop": "node dist/cli.js stop"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.1",
+    "jsmodbus": "4.0.6",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "typescript": "^5.9.3"
+  }
+}

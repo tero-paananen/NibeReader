@@ -1,0 +1,14 @@
+# Replace the Node executable, server path and heat pump address for your machine.
+# Registering this server never starts history collection.
+[mcp_servers.nibe]
+command = "/usr/local/bin/node"
+args = ["/Users/tepaanan/Developer/NibeReader/NibeMCP/dist/server.js"]
+startup_timeout_sec = 10
+tool_timeout_sec = 120
+
+[mcp_servers.nibe.env]
+NIBE_HOST = "YOUR_PUMP_IP"
+NIBE_PORT = "502"
+NIBE_UNIT_ID = "1"
+NIBE_SAMPLE_SECONDS = "60"
+NIBE_RETENTION_DAYS = "365"
